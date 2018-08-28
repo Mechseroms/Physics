@@ -5,6 +5,19 @@ import pygame, random
 class World(object):
     def __init__(self):
         self.collision_rects = []
+        self._gravity = PyVector(x=0.0, y=0.0)
+
+    @property
+    def gravity(self):
+        return self._gravity
+
+    @gravity.setter
+    def gravity(self, f):
+        self._gravity.y = float(f)
+
+    @gravity.deleter
+    def gravity(self):
+        self._gravity = PyVector(x=0.0, y=0.0)
 
     def add_collision(self, other):
         self.collision_rects.append(other)
@@ -39,18 +52,27 @@ class PhysicsCircle(PhysicsObject):
         self.radius = 32
         self.parent = parent
         self.color = (255, 255, 255)
-        self.surface = pygame.Surface((64, 64))
+        self.surface = pygame.Surface((64, 64), pygame.SRCALPHA, 32)
         self.rect = pygame.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius)
+        self.velocity.limit_y_maximum = 0.01
 
     def move(self, i):
-        self.position.x += i
+        self.position.x += i * 8
 
     def collided(self, objects):
 
         for rect in objects:
-            if self.position.y >= rect.top:
-                self.velocity.y = 0.0
-                self.position.y = rect.top
+            if self.position.x in range(rect.x, rect.x + rect.width):
+                if self.position.y + self.rect.height >= rect.top:
+                    self.velocity.y = 0.0
+                    self.position.y = rect.y - self.rect.height
+
+            if self.position.y in range(rect.y, rect.y + rect.height):
+                dif = self.rect.y - rect.y
+                if dif <= self.rect.height/2:
+                    print('good')
+                else:
+                    print('bad')
 
     def update(self):
         self.update_physics()
