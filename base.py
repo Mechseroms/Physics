@@ -3,10 +3,10 @@ import random
 
 
 class PyVector(object):
-    def __init__(self, x=0.0, y=0.0, limit=None):
+    def __init__(self, x=0.0, y=0.0, limit=(None, None)):
         self._x, self._y = float(x), float(y)
-        self._limit_x = limit
-        self._limit_y = limit
+        self._limit_x = list(limit)
+        self._limit_y = list(limit)
 
     def __repr__(self):
         return f"PyVector(x={self._x}, y={self._y})"
@@ -35,9 +35,29 @@ class PyVector(object):
         return self._limit_x
 
     @property
+    def limit_x_maximum(self):
+        """ Get _limit_x attribute. """
+        return self._limit_x[0]
+
+    @property
+    def limit_x_minimum(self):
+        """ Get _limit_x attribute. """
+        return self._limit_x[1]
+
+    @property
     def limit_y(self):
         """ Get _limit_y attribute. """
         return self._limit_y
+
+    @property
+    def limit_y_maximum(self):
+        """ Get _limit_y attribute. """
+        return self._limit_y[0]
+
+    @property
+    def limit_y_minimum(self):
+        """ Get _limit_y attribute. """
+        return self._limit_y[1]
 
     @x.setter
     def x(self, number):
@@ -46,24 +66,58 @@ class PyVector(object):
 
     @y.setter
     def y(self, number):
-        """ Assign y a new float"""
         self._y = float(number)
 
     @limit.setter
     def limit(self, number):
-        """ Set _limit attribute to float(number). """
-        self._limit_x = float(number)
-        self._limit_y = float(number)
+        if isinstance(number, (int, float)):
+            self._limit_x[0] = float(number)
+            self._limit_x[1] = float(number)
+            self._limit_y[0] = float(number)
+            self._limit_y[1] = float(number)
+        elif isinstance(number, (tuple, list)):
+            self._limit_x[0] = float(number[0])
+            self._limit_x[1] = float(number[1])
+            self._limit_y[0] = float(number[0])
+            self._limit_y[1] = float(number[1])
 
     @limit_x.setter
     def limit_x(self, number):
-        """ Set _limit_x attribute to float(number). """
-        self._limit_x = float(number)
+        if isinstance(number, (int, float)):
+            self._limit_x[0] = float(number)
+            self._limit_x[1] = float(number)
+        elif isinstance(number, (list, tuple)):
+            self._limit_x[0] = float(number[0])
+            self._limit_x[1] = float(number[1])
+
+    @limit_x_maximum.setter
+    def limit_x_maximum(self, number):
+        if isinstance(number, (int, float)):
+            self._limit_x[0] = float(number)
+
+    @limit_x_minimum.setter
+    def limit_x_minimum(self, number):
+        if isinstance(number, (int, float)):
+            self._limit_x[1] = float(number)
 
     @limit_y.setter
     def limit_y(self, number):
-        """ Set _limit_y attribute to float(number). """
-        self._limit_y = float(number)
+        if isinstance(number, (int, float)):
+            self._limit_y[0] = float(number)
+            self._limit_y[1] = float(number)
+        elif isinstance(number, (tuple, list)):
+            self._limit_y[0] = float(number[0])
+            self._limit_y[1] = float(number[1])
+
+    @limit_y_maximum.setter
+    def limit_y_maximum(self, number):
+        if isinstance(number, (int, float)):
+            self._limit_y[0] = float(number)
+
+    @limit_y_minimum.setter
+    def limit_y_minimum(self, number):
+        if isinstance(number, (int, float)):
+            self._limit_y[1] = float(number)
 
     @x.deleter
     def x(self):
@@ -77,46 +131,59 @@ class PyVector(object):
 
     @limit.deleter
     def limit(self):
-        """ Delete: set _limit attribute to default. """
-        self._limit_x = None
-        self._limit_y = None
+        self._limit_x = [None, None]
+        self._limit_y = [None, None]
 
     @limit_x.deleter
     def limit_x(self):
-        """ Delete: set _limit_x attribute to default. """
-        self._limit_x = None
+        self._limit_x = [None, None]
+
+    @limit_x_maximum.deleter
+    def limit_x_maximum(self):
+        self._limit_x[0] = None
+
+    @limit_x_minimum.deleter
+    def limit_x_minimum(self):
+        self._limit_x[1] = None
 
     @limit_y.deleter
     def limit_y(self):
-        """ Delete: set _limit_y attribute to default. """
-        self._limit_y = None
+        self._limit_y = [None, None]
+
+    @limit_y_maximum.deleter
+    def limit_y_maximum(self):
+        self._limit_y[0] = None
+
+    @limit_y_minimum.deleter
+    def limit_y_minimum(self):
+        self._limit_y[1] = None
 
     def __add__(self, other):
         """ Addition of an other PyVector into another using v3 = v1 + v2 notation."""
         self._x += other.x
         self._y += other.y
-        self.limit_vector()
+        self.test_limit()
         return self
 
     def __sub__(self, other):
         """ Subtraction of an other PyVector into another using v3 = v1 - v2 notation."""
         self._x -= other.x
         self._y -= other.y
-        self.limit_vector()
+        self.test_limit()
         return self
 
     def __mul__(self, number):
         """ Multiplication of a PyVector by a float(number). v3 = v1 * number"""
         self._x *= float(number)
         self._y *= float(number)
-        self.limit_vector()
+        self.test_limit()
         return self
 
     def __truediv__(self, number):
         """ Division of a PyVector by a float(number). v3 = v1 / number"""
         self._x /= float(number)
         self._y /= float(number)
-        self.limit_vector()
+        self.test_limit()
         return self
 
     def __eq__(self, other):
@@ -134,6 +201,18 @@ class PyVector(object):
         """ return new PyVector with x and y being made positive."""
         return PyVector(x=+self._x, y=+self._y)
 
+    def __iadd__(self, other):
+        return self.__add__(other)
+
+    def __isub__(self, other):
+        return self.__sub__(other)
+
+    def __imul__(self, number):
+        return self.__mul__(number)
+
+    def __itruediv__(self, number):
+        return self.__truediv__(number)
+
     def magnitude(self):
         """ return magnitude expression. """
         return float(
@@ -142,34 +221,44 @@ class PyVector(object):
             )
         )
 
-    def limit_vector(self, number=None):
-        """ Either limit using a passed float(number) or limit using a set _limit. """
-        if isinstance(number, (int, float)):
-            # limit if number is a float or integer:
-            if self._x > float(number):
-                self._x = float(number)
-            if self._y > float(number):
-                self._y = float(number)
-        elif isinstance(number, (list, tuple)):
-            # limit if number is a tuple or list of two numbers [x, y] or (x, y)
-            if self._x > float(number[0]):
-                self._x = float(number[0])
-            if self._y > float(number[1]):
-                self._y = float(number[1])
-        elif self._limit_y and self._limit_x:
-            # limit if both _limit_y and _limit_x has been defined
-            if self._x > float(self._limit_x):
-                self._x = float(self._limit_x)
-            if self._y > float(self._limit_y):
-                self._y = float(self._limit_y)
-        elif self._limit_x:
-            # limit if _limit_x has been defined
-            if self._x > float(self._limit_x):
-                self._x = float(self._limit_x)
-        elif self._limit_y:
-            # limit if _limit_y has been defined
-            if self._y > float(self._limit_y):
-                self._y = float(self._limit_y)
+    def test_limit(self):
+        # set Maxes
+        if self._limit_x[0]:
+            # X Max
+            if self._x > float(self._limit_x[0]):
+                self._x = float(self._limit_x[0])
+        if self._limit_x[1]:
+            # X Min
+            if self._x < float(self._limit_x[1]):
+                self._x = float(self._limit_x[1])
+
+        if self._limit_y[0]:
+            # Y Max
+            if self._y > float(self._limit_y[0]):
+                self._y = float(self._limit_y[0])
+        if self._limit_y[1]:
+            # Y Min
+            if self._y < float(self._limit_y[1]):
+                self._y = float(self._limit_y[1])
+
+    def limit_vector(self, maximum=None, minimum=None):
+        """ Either limit using a passed float(maximum) or limit using a set _limit. """
+        if isinstance(maximum, (int, float)):
+            # limit if maximum is a float or integer:
+            self._limit_x[0] = float(maximum)
+            self._limit_y[0] = float(maximum)
+        elif isinstance(maximum, (list, tuple)):
+            # limit if maximum is a tuple or list of two numbers [x, y] or (x, y)
+            self._limit_x[0] = float(maximum[0])
+            self._limit_y[0] = float(maximum[1])
+
+        if isinstance(minimum, (int, float)):
+            self._limit_x[1] = float(minimum)
+            self._limit_y[1] = float(minimum)
+        elif isinstance(minimum, (list, tuple)):
+            # limit if maximum is a tuple or list of two numbers [x, y] or (x, y)
+            self._limit_x[1] = float(minimum[0])
+            self._limit_y[1] = float(minimum[1])
 
     def normalize(self):
         """ Normalize and return a PyVector. """
@@ -179,6 +268,10 @@ class PyVector(object):
     def copy(self):
         """ Make a new PyVector with self._x and self._y. """
         return PyVector(x=self._x, y=self._y)
+
+    def convert(self):
+        # TODO: this is for easy conversion for positioning using Pygame how to handle?
+        return int(self._x), int(self._y)
 
     @staticmethod
     def add_vectors(vector_1, vector_2):
@@ -191,3 +284,9 @@ class PyVector(object):
         """Static: Subtract two vectors and return a vector with those added attributes."""
         if isinstance(vector_1, PyVector) and isinstance(vector_2, PyVector):
             return PyVector(x=vector_1.x - vector_2.x, y=vector_1.y - vector_2.y)
+
+    @staticmethod
+    def random_PyVector(width, height):
+        x = random.uniform(0, width)
+        y = random.uniform(0, height)
+        return PyVector(x=x, y=y)
